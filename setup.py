@@ -56,6 +56,7 @@ setup(
             'calmjs = calmjs.runtime:main',
         ],
         'calmjs.runtime': [
+            'artifact = calmjs.runtime:artifact',
             'npm = calmjs.npm:npm.runtime',
             'yarn = calmjs.yarn:yarn.runtime',
         ],
@@ -92,6 +93,7 @@ setup(
         ],
         'calmjs.reserved': [
             'calmjs.artifacts = calmjs',
+            'calmjs.artifacts.tests = calmjs.dev',
             'calmjs.dev.module = calmjs.dev',
             'calmjs.dev.module.tests = calmjs.dev',
             'calmjs.extras_keys = calmjs',

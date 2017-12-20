@@ -47,6 +47,7 @@ from calmjs.utils import pdb_post_mortem
 
 CALMJS = 'calmjs'
 CALMJS_RUNTIME = 'calmjs.runtime'
+CALMJS_RUNTIME_ARTIFACT = 'calmjs.runtime.artifact'
 logger = logging.getLogger(__name__)
 DEST_ACTION = 'action'
 DEST_RUNTIME = 'runtime'
@@ -621,7 +622,7 @@ class Runtime(BaseRuntime):
         subparser = details.subparsers.get(action_key)
         if runtime:
             return runtime.run(argparser=subparser, **kwargs)
-        # nothing is going to happen otherwise?
+        return NotImplemented
 
 
 class CalmJSRuntime(Runtime):
@@ -868,6 +869,26 @@ class ToolchainRuntime(DriverRuntime):
         return spec
 
 
+class ArtifactRuntime(Runtime):
+    """
+    helper for the management of artifacts
+    """
+
+    def __init__(
+            self, entry_point_group=CALMJS_RUNTIME_ARTIFACT,
+            action_key='artifact_runtime', *a, **kw):
+        super(ArtifactRuntime, self).__init__(
+            entry_point_group=entry_point_group,
+            action_key=action_key,
+            *a, **kw
+        )
+
+    def run(self, argparser=None, **kwargs):
+        result = super(ArtifactRuntime, self).run(argparser, **kwargs)
+        if result is NotImplemented:
+            argparser.print_help()
+
+
 class SourcePackageToolchainRuntime(ToolchainRuntime):
     """
     Include the argument parser setup using the standardized keywords
@@ -1087,12 +1108,21 @@ class PackageManagerRuntime(DriverRuntime):
         return action(**kwargs)
 
 
+artifact = ArtifactRuntime()
+
+
 def main(args=None, runtime_cls=CalmJSRuntime):
     bootstrap = BootstrapRuntime()
     # None to distinguish args from unspecified or specified as [], but
     # ultimately the value must be a list.
     args = norm_args(args)
     extras = bootstrap(args)
+
+    # Rather than forcing a "print_help" somewhere later to print out
+    # the help, trigger it through an implicit `-h` to avoid certain
+    # differences in how parsing is handled between different versions
+    # of Python and ArgumentParser, as doing it in this hacky way turns
+    # out to be most consistent.
     if not extras:
         args = args + ['-h']
 
